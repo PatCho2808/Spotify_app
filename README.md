@@ -1,7 +1,7 @@
 # Spotify App
 
 
-### App that prints text of the song that is currently played by the user in Spotify App
+### App that prints out text of the song that is currently playing by the user in Spotify App
 
 Technology used: 
 - [PHP](https://www.php.net/)
