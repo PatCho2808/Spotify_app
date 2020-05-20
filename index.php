@@ -1,9 +1,11 @@
 <?php
+    session_start();
+
     function setToken()
     {
         $curl = curl_init('https://accounts.spotify.com/api/token');
         curl_setopt($curl, CURLOPT_POST, true);
-        if(!empty($_COOKIE['refresh_token']))
+        if(!empty($_SESSION['refresh_token']))
         {
             $arguments = 'grant_type=refresh_token&refresh_token=' . urlencode($_COOKIE['refresh_token']);
         }
@@ -17,18 +19,19 @@
         $result = curl_exec($curl);
         curl_close($curl);
         $array = json_decode($result, true);
-        setcookie('token', $array['access_token'], time() + $array['expires_in']);
+        $_SESSION['token'] =  $array['access_token'];
+        $_SESSION['expire_date'] =  time() + $array['expires_in'];
         if($array['refresh_token'])
         {
-            setcookie("refresh_token", $array['refresh_token']);
+            $_SESSION["refresh_token"] =  $array['refresh_token'];
         }
     }
 
-    if(!empty($_GET['code']) && empty($_COOKIE['token']))
+    if((!empty($_GET['code']) && empty($_SESSION['token']) || time() > $_SESSION['expire_date']))
     {
         setToken();
     }
-    if (!empty($_COOKIE['token']))
+    if (!empty($_SESSION['token']))
     {
         $curl = curl_init('https://api.spotify.com/v1/me/player');
         curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: Bearer " . urlencode($_COOKIE['token'])));
@@ -46,7 +49,6 @@
         curl_close($curl);
         $array = json_decode($result, true);
         $text = $array['result']['track']['text'];
-
     }
     else
     {
@@ -58,9 +60,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-
     <title>Spotify app</title>
-
 </head>
 <body>
     <h1> <?php echo $name . " " .  $artist_name ?></h1>
